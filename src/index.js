@@ -1,10 +1,12 @@
 const express = require("express");
-const talkers = require("./getTalker");
+const talkers = require("./utils/getTalker");
 
 const app = express();
 app.use(express.json());
 
 const HTTP_OK_STATUS = 200;
+const HTTP_NOT_FOUND_STATUS = 404;
+const HTTP_INTERNAL_SERVER_ERROR_STATUS = 500;
 const PORT = process.env.PORT || "3001";
 
 // não remova esse endpoint, e para o avaliador funcionar
@@ -17,7 +19,33 @@ app.listen(PORT, () => {
 });
 
 app.get("/talker", async (_request, response) => {
-  const getTalkers = await talkers();
-  if (!getTalkers) return response.status(HTTP_OK_STATUS).json([]);
-  return response.status(HTTP_OK_STATUS).json(getTalkers);
+  try {
+    const getTalkers = await talkers();
+    if (!getTalkers) {
+      return response.status(HTTP_OK_STATUS).json([]);
+    }
+    return response.status(HTTP_OK_STATUS).json(getTalkers);
+  } catch (error) {
+    return response.status(HTTP_INTERNAL_SERVER_ERROR_STATUS).json({
+      error: error.message,
+    });
+  }
+});
+
+app.get("/talker/:id", async (request, response) => {
+  try {
+    const getTalkers = await talkers();
+    const talkerById = getTalkers.find(
+      (talker) => talker.id === Number(request.params.id)
+    );
+    if (!talkerById)
+      return response.status(HTTP_NOT_FOUND_STATUS).json({
+        message: "Pessoa palestrante não encontrada",
+      });
+    return response.status(HTTP_OK_STATUS).json(talkerById);
+  } catch (error) {
+    return response.status(HTTP_INTERNAL_SERVER_ERROR_STATUS).json({
+      error: error.message,
+    });
+  }
 });
