@@ -1,5 +1,6 @@
 const express = require('express');
 const talkers = require('./utils/getTalker');
+const generatorToken = require('./utils/tokenGenerate');
 
 const app = express();
 app.use(express.json());
@@ -49,4 +50,11 @@ app.get('/talker/:id', async (request, response) => {
       error: error.message,
     });
   }
+});
+
+app.post('/login', (req, res) => {
+  const { body } = req;
+  const token = generatorToken();
+
+  if (body) return res.status(HTTP_OK_STATUS).json({ token });
 });
