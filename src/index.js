@@ -36,12 +36,13 @@ app.get('/talker/:id', async (request, response) => {
   try {
     const getTalkers = await talkers();
     const talkerById = getTalkers.find(
-      (talker) => talker.id === Number(request.params.id)
+      (talker) => talker.id === Number(request.params.id),
     );
-    if (!talkerById)
+    if (!talkerById) {
       return response.status(HTTP_NOT_FOUND_STATUS).json({
         message: 'Pessoa palestrante não encontrada',
       });
+    }
     return response.status(HTTP_OK_STATUS).json(talkerById);
   } catch (error) {
     return response.status(HTTP_INTERNAL_SERVER_ERROR_STATUS).json({
