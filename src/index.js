@@ -1,6 +1,8 @@
 const express = require('express');
 const talkers = require('./utils/getTalker');
 const generatorToken = require('./utils/tokenGenerate');
+const emailValidator = require('./middlewares/emailValidator');
+const passwordValidator = require('./middlewares/passwordValidator');
 
 const app = express();
 app.use(express.json());
@@ -52,7 +54,7 @@ app.get('/talker/:id', async (request, response) => {
   }
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', emailValidator, passwordValidator, (req, res) => {
   const { body } = req;
   const token = generatorToken();
 
