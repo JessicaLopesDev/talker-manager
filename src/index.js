@@ -1,14 +1,15 @@
 const express = require('express');
 const talkers = require('./utils/getTalker');
 const generatorToken = require('./utils/tokenGenerate');
-const emailValidator = require('./middlewares/emailValidator');
-const passwordValidator = require('./middlewares/passwordValidator');
+const emailValidator = require('./middlewares/auth/emailValidator');
+const passwordValidator = require('./middlewares/auth/passwordValidator');
+const tokenValidator = require('./middlewares/auth/tokenValidator');
 
 const app = express();
 app.use(express.json());
 
 const HTTP_OK_STATUS = 200;
-const HTTP_NOT_FOUND_STATUS = 404;
+const NOT_FOUND = 404;
 const HTTP_INTERNAL_SERVER_ERROR_STATUS = 500;
 const PORT = process.env.PORT || '3001';
 
@@ -24,6 +25,7 @@ app.listen(PORT, () => {
 app.get('/talker', async (_request, response) => {
   try {
     const getTalkers = await talkers();
+
     if (!getTalkers) {
       return response.status(HTTP_OK_STATUS).json([]);
     }
@@ -42,7 +44,7 @@ app.get('/talker/:id', async (request, response) => {
       (talker) => talker.id === Number(request.params.id),
     );
     if (!talkerById) {
-      return response.status(HTTP_NOT_FOUND_STATUS).json({
+      return response.status(NOT_FOUND).json({
         message: 'Pessoa palestrante não encontrada',
       });
     }
@@ -59,4 +61,15 @@ app.post('/login', emailValidator, passwordValidator, (req, res) => {
   const token = generatorToken();
 
   if (body) return res.status(HTTP_OK_STATUS).json({ token });
+});
+
+app.post('/talker', tokenValidator, async (request, response) => {
+  try {
+    // const { body, headers } = request;
+    return response.status(HTTP_OK_STATUS).json([]);
+  } catch (error) {
+    return response.status(HTTP_INTERNAL_SERVER_ERROR_STATUS).json({
+      error: error.message,
+    });
+  }
 });
