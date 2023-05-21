@@ -1,4 +1,7 @@
 const express = require('express');
+const fs = require('fs').promises;
+const path = require('path');
+
 const talkers = require('./utils/getTalker');
 const generatorToken = require('./utils/tokenGenerate');
 const emailValidator = require('./middlewares/auth/emailValidator');
@@ -6,13 +9,16 @@ const passwordValidator = require('./middlewares/auth/passwordValidator');
 const tokenValidator = require('./middlewares/auth/tokenValidator');
 const nameValidator = require('./middlewares/talker/nameValidator');
 const ageValidator = require('./middlewares/talker/ageValidator');
+const talkValidator = require('./middlewares/talker/talkValidator');
+const watchedAtValidator = require('./middlewares/talker/watchedAtValidator');
+const rateValidator = require('./middlewares/talker/rateValidator');
 
 const app = express();
 app.use(express.json());
 
 const HTTP_OK_STATUS = 200;
 const NOT_FOUND = 404;
-const HTTP_INTERNAL_SERVER_ERROR_STATUS = 500;
+const INTERNAL_SERVER_ERROR = 500;
 const PORT = process.env.PORT || '3001';
 
 // não remova esse endpoint, e para o avaliador funcionar
@@ -33,7 +39,7 @@ app.get('/talker', async (_request, response) => {
     }
     return response.status(HTTP_OK_STATUS).json(getTalkers);
   } catch (error) {
-    return response.status(HTTP_INTERNAL_SERVER_ERROR_STATUS).json({
+    return response.status(INTERNAL_SERVER_ERROR).json({
       error: error.message,
     });
   }
@@ -52,7 +58,7 @@ app.get('/talker/:id', async (request, response) => {
     }
     return response.status(HTTP_OK_STATUS).json(talkerById);
   } catch (error) {
-    return response.status(HTTP_INTERNAL_SERVER_ERROR_STATUS).json({
+    return response.status(INTERNAL_SERVER_ERROR).json({
       error: error.message,
     });
   }
@@ -70,13 +76,27 @@ app.post(
   tokenValidator,
   nameValidator,
   ageValidator,
-  async (_request, response) => {
+  talkValidator,
+  watchedAtValidator,
+  rateValidator,
+  async (req, res) => {
     try {
-      return response.status(HTTP_OK_STATUS).json([]);
+      const { name, age, talk } = req.body;
+      const allTalkers = await talkers();
+      const newTalker = {
+        name,
+        age,
+        id: allTalkers.length + 1,
+        talk,
+      };
+      // const allTalkers = JSON.stringify([...talkersData, newTalker]);
+      await fs.writeFile(
+        path.resolve(__dirname, './talker.json'),
+        JSON.stringify([newTalker]),
+      );
+      return res.status(201).json(newTalker);
     } catch (error) {
-      return response.status(HTTP_INTERNAL_SERVER_ERROR_STATUS).json({
-        error: error.message,
-      });
+      return res.status(INTERNAL_SERVER_ERROR).json({ error: error.message });
     }
   },
 );
