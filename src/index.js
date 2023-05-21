@@ -4,6 +4,8 @@ const generatorToken = require('./utils/tokenGenerate');
 const emailValidator = require('./middlewares/auth/emailValidator');
 const passwordValidator = require('./middlewares/auth/passwordValidator');
 const tokenValidator = require('./middlewares/auth/tokenValidator');
+const nameValidator = require('./middlewares/talker/nameValidator');
+const ageValidator = require('./middlewares/talker/ageValidator');
 
 const app = express();
 app.use(express.json());
@@ -63,13 +65,18 @@ app.post('/login', emailValidator, passwordValidator, (req, res) => {
   if (body) return res.status(HTTP_OK_STATUS).json({ token });
 });
 
-app.post('/talker', tokenValidator, async (request, response) => {
-  try {
-    // const { body, headers } = request;
-    return response.status(HTTP_OK_STATUS).json([]);
-  } catch (error) {
-    return response.status(HTTP_INTERNAL_SERVER_ERROR_STATUS).json({
-      error: error.message,
-    });
-  }
-});
+app.post(
+  '/talker',
+  tokenValidator,
+  nameValidator,
+  ageValidator,
+  async (_request, response) => {
+    try {
+      return response.status(HTTP_OK_STATUS).json([]);
+    } catch (error) {
+      return response.status(HTTP_INTERNAL_SERVER_ERROR_STATUS).json({
+        error: error.message,
+      });
+    }
+  },
+);

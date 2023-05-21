@@ -1,7 +1,5 @@
 const tokenValidator = (req, res, next) => {
-  const { authorization } = req.headers;
-
-  const [, token] = authorization.split(' ');
+  const token = req.headers.authorization;
 
   if (!token) {
     return res.status(401).json({
