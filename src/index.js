@@ -89,10 +89,9 @@ app.post(
         id: allTalkers.length + 1,
         talk,
       };
-      // const allTalkers = JSON.stringify([...talkersData, newTalker]);
       await fs.writeFile(
         path.resolve(__dirname, './talker.json'),
-        JSON.stringify([newTalker]),
+        JSON.stringify([...allTalkers, newTalker]),
       );
       return res.status(201).json(newTalker);
     } catch (error) {
@@ -100,3 +99,22 @@ app.post(
     }
   },
 );
+
+// app.put('/talker/:id', tokenValidator, async (request, response) => {
+//   try {
+//     const getTalkers = await talkers();
+//     const talkerById = getTalkers.find(
+//       (talker) => talker.id === Number(request.params.id),
+//     );
+//     if (!talkerById) {
+//       return response.status(NOT_FOUND).json({
+//         message: 'Pessoa palestrante não encontrada',
+//       });
+//     }
+//     return response.status(HTTP_OK_STATUS).json(talkerById);
+//   } catch (error) {
+//     return response.status(INTERNAL_SERVER_ERROR).json({
+//       error: error.message,
+//     });
+//   }
+// });
