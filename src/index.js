@@ -137,3 +137,20 @@ app.put(
     }
   },
 );
+
+app.delete('/talker/:id', tokenValidator, async (req, res) => {
+  try {
+    const allTalkers = await talkers();
+
+    const filteredTalkers = allTalkers.filter(
+      (talker) => talker.id !== Number(req.params.id),
+    );
+    await fs.writeFile(
+      path.resolve(__dirname, './talker.json'),
+      JSON.stringify(filteredTalkers),
+    );
+    return res.status(204).json({});
+  } catch (error) {
+    return res.status(INTERNAL_SERVER_ERROR).json({ error: error.message });
+  }
+});
