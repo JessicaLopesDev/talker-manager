@@ -100,21 +100,40 @@ app.post(
   },
 );
 
-// app.put('/talker/:id', tokenValidator, async (request, response) => {
-//   try {
-//     const getTalkers = await talkers();
-//     const talkerById = getTalkers.find(
-//       (talker) => talker.id === Number(request.params.id),
-//     );
-//     if (!talkerById) {
-//       return response.status(NOT_FOUND).json({
-//         message: 'Pessoa palestrante não encontrada',
-//       });
-//     }
-//     return response.status(HTTP_OK_STATUS).json(talkerById);
-//   } catch (error) {
-//     return response.status(INTERNAL_SERVER_ERROR).json({
-//       error: error.message,
-//     });
-//   }
-// });
+const talkerIndex = (allTalkers, id) =>
+  allTalkers.findIndex((talker) => talker.id === Number(id));
+
+const talkerById = (allTalkers, id) =>
+  allTalkers.find((talker) => talker.id === Number(id));
+
+const talkerNotFoundMessage = 'Pessoa palestrante não encontrada';
+
+app.put(
+  '/talker/:id',
+  tokenValidator,
+  nameValidator,
+  ageValidator,
+  talkValidator,
+  watchedAtValidator,
+  rateValidator,
+  async (req, res) => {
+    const { name, age, talk } = req.body;
+    try {
+      const allTalkers = await talkers();
+      const index = talkerIndex(allTalkers, req.params.id);
+      const currentTalker = talkerById(allTalkers, req.params.id);
+      if (!currentTalker) {
+        return res.status(NOT_FOUND).json({ message: talkerNotFoundMessage });
+      }
+      const newTalker = { name, age, talk, id: Number(req.params.id) };
+      allTalkers[index] = newTalker;
+      await fs.writeFile(
+        path.resolve(__dirname, './talker.json'),
+        JSON.stringify(allTalkers),
+      );
+      return res.status(HTTP_OK_STATUS).json(newTalker);
+    } catch (error) {
+      return res.status(INTERNAL_SERVER_ERROR).json({ error: error.message });
+    }
+  },
+);
